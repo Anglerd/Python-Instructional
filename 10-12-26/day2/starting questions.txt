@@ -1,7 +1,0 @@
-• Where is your project folder?
-• What is the name of your Python file?
-• How do you run the file?
-• What does print() do?
-• What is a variable?
-• What is the terminal showing you?
-• What happens when Python finds an error?
