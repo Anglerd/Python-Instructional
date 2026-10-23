@@ -1,8 +1,0 @@
-1. What does a variable do?
-2. Why should Python variable names use underscores instead of spaces?
-3. What does input() do?
-4. Why does Python treat input as text by default?
-5. What is the difference between a string, integer, float, and boolean?
-6. What does an f-string allow us to do?
-7. What happens if you forget a closing quote or parenthesis?
-8. Why is it important to test the script more than once?
