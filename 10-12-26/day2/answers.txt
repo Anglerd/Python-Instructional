@@ -1,0 +1,30 @@
+• Where is your project folder?
+C:\Python Instructional\day1
+
+• What is the name of your Python file?
+day1.py
+
+• How do you run the file?
+py "NAME_OF_FILE"
+python "NAME_OF_FILE"
+python3 "NAME_OF_FILE"
+
+py day1.py
+python day1.py
+python3 day1.py
+
+• What does print() do?
+print("PRINTS TO OUTPUT")
+print("THESE WILL", "BE CONCATENATED", "WITH AN INCLUDED SPACE BETWEEN")
+
+• What is a variable?
+something = "some value"
+
+if something == "some value":
+    do stuff
+
+• What is the terminal showing you?
+print statements
+
+• What happens when Python finds an error?
+it crashes and prints  a stack trace for the error

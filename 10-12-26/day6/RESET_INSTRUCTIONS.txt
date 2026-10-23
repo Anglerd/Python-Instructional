@@ -1,0 +1,15 @@
+there are 4 fields that require entry in the following instructions. They are denoted by cRaZy cAsE
+STOP MYSQL (best route is services.msc)
+
+Make a file
+mysql-init.txt
+with the following contents
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'eNtEr a nEw pAsSwOrD HeRe';
+
+navigate to MYSQL (in admin terminal)
+probably in
+"C:\Program Files\MySQL\MySQL Server VeRsIoN NuMbEr\bin\mysqld" --init-file="pAtH To mYsQl-InIt.TxT" --console
+
+then to test try running
+Start-Service -Name MySQLvErSiOn_nUmBeR
+& "C:\Program Files\MySQL\MySQL Server VeRsIoN NuMbEr\bin\MySQL.exe" -u root -p

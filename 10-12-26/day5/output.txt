@@ -1,0 +1,4 @@
+mariott 10 Britain
+springs 10 Germany
+foo 10 Jupiter
+hilton 10 Japan

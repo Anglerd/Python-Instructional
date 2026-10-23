@@ -1,0 +1,4 @@
+1. What is the built-in keyword used to perform an action dependent on the "truthiness" of a statement?
+2. What are the other keywords associated with the keyword in question 1?
+3. What is the difference between assigning a variable and comparing variables? (what are the two operators?)
+4. What are all the comparison operators?

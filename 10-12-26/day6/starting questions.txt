@@ -1,0 +1,80 @@
+1. What is the function used to open a file in python?
+open()
+
+"starting questions.txt"
+
+f = open("starting questions.txt", "r")
+
+2. What are 2 ways to read all the lines in the file we opened?
+with open(r"starting questions.txt", "r") as file:
+    print(file.read())
+
+lines = f.readlines()
+print(lines)
+
+for line in f:
+    print(line)
+
+3. What is the method used to remove the whitespace from the beginnings and ends of strings?
+some_string = ""
+some_string.strip()
+some_string.lstrip()
+some_string.rstrip()
+
+4. Explain why the method from question 3 would be used during the process of reading a file?
+"\n".strip
+with open(r"starting questions.txt", "r") as file:
+    file_text = file.read().split("\n")
+
+5. What is the method used to close a file in python?
+file = open("some_file.txt")
+file.close()
+with open("some_file.txt") as file:
+    do_some_stuff
+#file closes here automagically
+
+6. What are the different options available when opening a file? What do they mean?
+r - read
+w - write
+a - append
+x - create
+
+b - binary
+t - text
+
+7. What are two easy ways to access different folders in the "path"?
+C:\some_folder\in\the\path\file.txt
+
+open("C:\\some_folder\\in\\the\\path\\file.txt")
+
+open(r"C:\some_folder\in\the\path\file.txt")
+
+8. Explain why we have to escape certain characters in strings?
+"\n\t\r"
+"\\n"
+\n
+
+9. What is stored in the variable in the following: "for variable in dictionary"
+dictionary = {"name": "Hendrix"}
+for variable in dictionary:
+    print(variable)
+    "name"
+
+10. What are the 2 "main" dictionary methods, methods which are most likely to be used during the "for" loop of a dictionary? (hint besides the default behavior how can we access dictionaries?)
+for value in dictionary.values():
+    value == values
+
+for key, value in dictionary.items():
+    print(key, value)
+
+11. How do we access lists? In "this_list = [7, 4, 3]" how can we access the value 4?
+print(this_list[1])
+4
+
+12. What is the first index in a list?
+0
+
+13. If needed, how can we get both the index and value from a list during a for loop?
+enumerate()
+for index, value in enumerate(this_list):
+    print(index, value)
