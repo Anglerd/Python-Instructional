@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chess Game</title>
+    <!-- chessboard.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <style>
+        body { font-family: Arial; text-align: center; }
+        #board { width: 400px; margin: 20px auto; }
+        .control-panel { margin: 20px; }
+        .status { font-weight: bold; color: #c00; }
+        input { margin: 5px; padding: 5px; }
+        button { margin: 5px; padding: 8px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Chess</h1>
+
+    <div class="control-panel">
+        <h3>Start New Game</h3>
+        <input type="number" id="whiteId" placeholder="White User ID" value="1">
+        <input type="number" id="blackId" placeholder="Black User ID" value="2">
+        <button onclick="startNewGame()">New Game</button>
+    </div>
+
+    <div class="control-panel">
+        <h3>Load Existing Game</h3>
+        <input type="number" id="loadBoardId" placeholder="Board ID">
+        <button onclick="loadGame()">Load</button>
+    </div>
+
+    <div id="board"></div>
+    <div class="status" id="status"></div>
+
+    <!-- jQuery (required by chessboard.js) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- chessboard.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        let board = null;          // chessboard.js instance
+        let currentGame = null;    // holds the last loaded game state
+
+        const API_BASE = 'http://localhost:5000';
+
+        // Convert our backend's 8x8 array (where rows[0] is row 0 = top) to chessboard.js 'position'
+        // chessboard.js expects rows[0] to be rank 8 (top), columns 0=a..7=h.
+        // Our backend already stores row0 as the top row, so mapping is direct.
+        function boardArrayToPosition(boardArray) {
+            const position = {};
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const piece = boardArray[row][col];
+                    if (piece) {
+                        const file = String.fromCharCode('a'.charCodeAt(0) + col);
+                        const rank = 8 - row;  // because row0 = top = rank8
+                        const square = file + rank;
+                        position[square] = piece; // piece is e.g. 'wP', 'bK'
+                    }
+                }
+            }
+            return position;
+        }
+
+        function updateBoard(gameData) {
+            currentGame = gameData;
+            const position = boardArrayToPosition(gameData.board);
+            board.position(position, false);
+
+            // Update turn indicator
+            const turnText = gameData.turn === 'white' ? 'White' : 'Black';
+            document.getElementById('status').textContent =
+                `Turn: ${turnText}` + (gameData.check_state ? ' – CHECK!' : '');
+        }
+
+        // Called by chessboard.js when a piece drop occurs
+        function onDrop(source, target) {
+            if (!currentGame) {
+                alert("Load or start a game first");
+                return 'snapback';
+            }
+
+            const fromFile = source[0], fromRank = source[1];
+            const toFile   = target[0], toRank   = target[1];
+
+            // Convert algebraic to zero-based row/col
+            const fromCol = fromFile.charCodeAt(0) - 'a'.charCodeAt(0);
+            const fromRow = 8 - parseInt(fromRank);     // rank 8 -> row 0
+            const toCol   = toFile.charCodeAt(0) - 'a'.charCodeAt(0);
+            const toRow   = 8 - parseInt(toRank);
+
+            // Make the move via API
+            fetch(`${API_BASE}/api/move`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    board_id: currentGame.board_id,
+                    from_row: fromRow,
+                    from_col: fromCol,
+                    to_row: toRow,
+                    to_col: toCol
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Illegal move: ' + data.error);
+                    board.position(boardArrayToPosition(currentGame.board), false); // snapback
+                } else {
+                    updateBoard(data);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Network error');
+                board.position(boardArrayToPosition(currentGame.board), false); // snapback
+            });
+
+            // While waiting for the API, we prevent the piece from staying at the target
+            return 'snapback'; // the board will be redrawn when response arrives
+        }
+
+        function startNewGame() {
+            const whiteId = document.getElementById('whiteId').value;
+            const blackId = document.getElementById('blackId').value;
+            fetch(`${API_BASE}/api/new_game`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({white_id: parseInt(whiteId), black_id: parseInt(blackId)})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.board_id) {
+                    loadGameById(data.board_id);
+                } else {
+                    alert('Failed to create game');
+                }
+            });
+        }
+
+        function loadGame() {
+            const boardId = document.getElementById('loadBoardId').value;
+            loadGameById(boardId);
+        }
+
+        function loadGameById(boardId) {
+            fetch(`${API_BASE}/api/load_game/${boardId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    updateBoard(data);
+                }
+            });
+        }
+
+        // Initialise the board when the page loads
+        $(document).ready(function() {
+            const config = {
+                draggable: true,
+                onDrop: onDrop,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
+                position: 'start' // we will update it once a game is loaded
+            };
+            board = Chessboard('board', config);
+            // Optionally, you could immediately load a default game or leave it empty.
+            // For now, we start with the standard opening board.
+            board.start();
+            currentGame = null;
+        });
+    </script>
+</body>
+</html>

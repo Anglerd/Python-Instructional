@@ -1,0 +1,32 @@
+for (int x=0; x < 7; x++){
+    do some stuff
+}
+
+end_some_statement ;
+
+int x=0;
+while (x < 7) {
+    do some stuff
+    x++;
+}
+
+for x in range(7):
+    do some stuff
+
+
+range(7) = [0,1,2,3,4,5,6]
+
+x = [0,1,2,3,4,5,6]
+
+x = range(7)[0]
+count = 0
+x == 0
+while x < 7:
+    do some stuff
+    count += 1
+    x = range(7)[count]
+
+x=0
+while x < 7:
+    do some stuff
+    x += 1
