@@ -17,7 +17,7 @@ class Entity:
 
     def perform_attack(self, target):
         if target.defend:
-            target.add_health(self.attack - target.defense)
+            target.add_health(-(self.attack - target.defense))
             target.use_defense()
         else:
             target.add_health(-self.attack)
