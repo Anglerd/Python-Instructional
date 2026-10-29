@@ -8,10 +8,8 @@ class Room:
         self.heal = heal
         self.save = save
 
-    def add_connection(self, connection, connect_back:bool=True):
+    def add_connection(self, connection: str):
         self.connections.append(connection)
-        if connect_back:
-            connection.add_connection(self, False)
 
     def get_connections(self):
         return self.connections
@@ -21,17 +19,20 @@ class Room:
     """
     def get_all_items(self):
         return self.item_list
-    def get_item(self, item):
-        if self.item_list and item in self.item_list:
-            self.item_list.remove(item)
-            return self.item_list[item]
-        else:
-            return None
-    def trap(self, player):
+
+    def get_item(self, item: str):
+        if self.item_list:
+            for this_item in self.item_list:
+                if this_item.name.lower().strip() == item:
+                    self.item_list.remove(this_item)
+                    return this_item
+        return None
+
+    def get_trap(self, player):
         if self.trap:
             player.add_health(-self.trap)
             self.trap = False
-    def heal(self, player):
+    def get_heal(self, player):
         if self.heal:
             player.add_health(self.heal)
             self.heal = False
