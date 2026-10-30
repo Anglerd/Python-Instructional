@@ -58,7 +58,7 @@ if __name__ == "__main__":
     player_history = load_player_history()
     if not player_history:
         print("Welcome to Spookies jumpscarrrre mansion")
-        player = entity.Player(input("What is your name?\n"), "weapon room")
+        player = entity.Player(input("What is your name?\n"), "cantina")
     else:
         #TODO add loading logic here
         player = entity.Player("john", "ballroom")
@@ -77,23 +77,28 @@ if __name__ == "__main__":
             print("This room was trapped!")
             this_room.get_trap(player)
             # print(f"Your health is now {player.health}") # add_health now mentions current health
+        combat = False
         if this_room.npc:
             npc_prompt = input(f"Would you like to talk or attack to {this_room.npc.name}\n").lower().strip()
             if npc_prompt == "talk":
                 print(f"They say {this_room.npc}")
             else:
+                combat = True
                 while not combat_logic.check_combat_end(player, this_room.npc):
                     combat_prompt = get_input("Enter 1 to attack or 2 to defend", int)
-                    player.use_defense()
-                    this_room.npc.use_defense()
                     if combat_prompt == 1:
                         combat_logic.combat_turn("attack", player, this_room.npc)
                     else:
                         combat_logic.combat_turn("defend", player, this_room.npc)
+        if combat:
+            print(f"This is the {this_room_name} {this_room}")
         player_prompt = input("What would you like to do?\n").lower().strip()
         if "go" == player_prompt:
             location_prompt = input("Where would you like to go?\n").lower().strip()
             player.go_to(location_prompt, this_room)
+            if player.location == "foyer" and "Blade of awesomeness" in player.items:
+                print("You win!")
+                quit()
         elif "heal" == player_prompt:
             this_room.get_heal(player)
         elif "take" == player_prompt:

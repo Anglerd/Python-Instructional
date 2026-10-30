@@ -6,7 +6,8 @@ def check_combat_end(player, enemy):
     return False
 
 def combat_turn(action, player, enemy):
-    #TODO enemies only defend?
+    player.use_defense()
+    enemy.use_defense()
     enemy_intent_roll = random.random()
     enemy_defense_chance = 0.4
     #70% = 0.7
@@ -19,4 +20,4 @@ def combat_turn(action, player, enemy):
         player.perform_attack(enemy)
     if not check_combat_end(player, enemy):
         if enemy_intent_roll > enemy_defense_chance:
-            enemy.perform_defense()
+            enemy.perform_attack(player)

@@ -12,11 +12,16 @@ class Entity:
     def add_health(self, amount):
         if self.health + amount > self.max_health:
             self.health = self.max_health
-        elif self.health + amount < 0:
+        elif self.health + amount <= 0:
             self.health = 0
+            print(f"{self.name} has died, they will not be able to eat chicken tendies tonight.")
+            if isinstance(self, Player):
+                print("You have died, that is the end!")
+                quit()
         else:
             self.health += amount
-        print(f"Their health is {self.health}")
+        if self.health > 0:
+            print(f"{self.name}'s health is {self.health}")
 
     def perform_attack(self, target):
         if target.defend:
