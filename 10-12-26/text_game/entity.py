@@ -51,9 +51,10 @@ class Player(Entity):
         self.defense += amount
     def add_max_health(self, amount):
         self.max_health += amount
-    def get_item(self, item):
+    def get_item(self, item, history):
         print(f"You take the {item.name}")
         self.items.append(item.name)
+        history.append(f"get_item {item}")
         for stat in item.stat_pairs:
             if stat[0] == "attack":
                 self.add_attack(stat[1])
@@ -64,10 +65,11 @@ class Player(Entity):
         print(f"Your stats are now: Attack={self.attack}, Defense={self.defense}, Health={self.health}/{self.max_health}")
 
 
-    def go_to(self, go_to_room_name: str, from_room: room.Room):
+    def go_to(self, go_to_room_name: str, from_room: room.Room, history):
         #TODO check if import is necessary
         if go_to_room_name in from_room.get_connections():
             self.location = go_to_room_name
+            history.append(f"go_to {go_to_room_name}")
         else:
             print("You can't go there!")
 

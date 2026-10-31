@@ -28,14 +28,20 @@ class Room:
                     return this_item
         return None
 
-    def get_trap(self, player):
+    def get_trap(self, player, history):
         if self.trap:
             player.add_health(-self.trap)
+            history.append(f"get_trap")
             self.trap = False
-    def get_heal(self, player):
+    def get_heal(self, player, history):
         if self.heal:
             player.add_health(self.heal)
+            history.append(f"get_heal")
             self.heal = False
+    def kill_npc(self, player, history, start_health):
+        if self.npc:
+            self.npc = None
+            history.append(f"kill_npc {start_health - player.health}")
 
     def __str__(self):
         #Caller should say something like f"This is the {room_name} {room}"

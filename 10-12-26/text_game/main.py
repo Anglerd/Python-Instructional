@@ -83,6 +83,7 @@ if __name__ == "__main__":
             if npc_prompt == "talk":
                 print(f"They say {this_room.npc}")
             else:
+                start_health = player.health
                 combat = True
                 while not combat_logic.check_combat_end(player, this_room.npc):
                     combat_prompt = get_input("Enter 1 to attack or 2 to defend", int)
@@ -90,23 +91,27 @@ if __name__ == "__main__":
                         combat_logic.combat_turn("attack", player, this_room.npc)
                     else:
                         combat_logic.combat_turn("defend", player, this_room.npc)
+                this_room.kill_npc(player, start_health)
         if combat:
             print(f"This is the {this_room_name} {this_room}")
         player_prompt = input("What would you like to do?\n").lower().strip()
         if "go" == player_prompt:
             location_prompt = input("Where would you like to go?\n").lower().strip()
-            player.go_to(location_prompt, this_room)
+            player.go_to(location_prompt, this_room, player_history)
             if player.location == "foyer" and "Blade of awesomeness" in player.items:
                 print("You win!")
+                for action in player_history:
+                    if "kill_npc" in player_history:
+
                 quit()
         elif "heal" == player_prompt:
-            this_room.get_heal(player)
+            this_room.get_heal(player, player_history)
         elif "take" == player_prompt:
             for item in this_room.get_all_items():
                 print(f"You see a {item.name}")
             item_prompt = input("What would you like to take?\n").lower().strip()
             this_item = this_room.get_item(item_prompt)
             if this_item:
-                player.get_item(this_item)
+                player.get_item(this_item, player_history)
             else:
                 print("That item doesn't exist")
