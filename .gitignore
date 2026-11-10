@@ -1,6 +1,7 @@
 #ignore python created folders/files
-*__pycache__/*
+__pycache__/
 *starting questions.txt
 *answers.txt
 *.pdf
 .venv/
+.idea/
