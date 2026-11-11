@@ -74,7 +74,7 @@ class Student():
     def __init__(self, name, school_year, grades):
         self.name = name
         self.year = school_year
-        grades = grades
+        self.grades = grades
 
     def get_name(self):
         return self.name
