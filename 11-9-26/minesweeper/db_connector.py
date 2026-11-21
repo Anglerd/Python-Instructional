@@ -6,7 +6,7 @@ from SOMETHING_CRAZY import db_config
 import mysql.connector
 # pip install mysql-connector-python
 
-DEBUG = True
+DEBUG = False
 
 def insert_into_db(database, insert_string, values):
     try:
@@ -23,6 +23,7 @@ def insert_into_db(database, insert_string, values):
         cursor.execute(sql, values)
         connection.commit()
         print("Saved to MySQL")
+        return cursor.lastrowid
     except mysql.connector.Error as error:
         print("Database save failed.")
         print("Error:", error)
@@ -35,15 +36,11 @@ def insert_into_db(database, insert_string, values):
 def save_board(difficulty, num_row, num_column, cell_list):
     insert_string = "difficulty, num_row, num_column"
     values = (difficulty, num_row, num_column)
-    insert_into_db("minefield", insert_string, values)
+    this_id = insert_into_db("minefield", insert_string, values)
     def save_cell(mine_row, mine_column, revealed, flagged, num_bomb, minefield_id):
         insert_string = "mine_row, mine_column, revealed, flagged, num_bomb, minefield_id"
         values = (mine_row, mine_column, revealed, flagged, num_bomb, minefield_id)
         insert_into_db("cell", insert_string, values)
-    connection = mysql.connector.connect(**db_config)
-    cursor = connection.cursor()
-    cursor.execute("SELECT id FROM minefield")
-    this_id = cursor.fetchall()[-1][0]
     for row_index in range(num_row):
         for column_index in range(num_column):
             func_dict = {**cell_list[row_index][column_index], "mine_row": row_index, "mine_column": column_index, "minefield_id": this_id}
@@ -114,7 +111,12 @@ def get_all_cells_from_game(id, num_row, num_column):
         cursor = connection.cursor()
         cursor.execute(f"SELECT * FROM cell WHERE minefield_id = {id}")
         raw_all_cell = cursor.fetchall()
-        all_cells = [[0] * num_column] * num_row
+        # all_cells = [[0] * num_column] * num_row
+        all_cells = []
+        for local_x in range(num_row):
+            all_cells.append([])
+            for local_y in range(num_column):
+                all_cells[local_x].append([])
         for cell in raw_all_cell:
             if DEBUG:
                 print(cell)
@@ -127,6 +129,24 @@ def get_all_cells_from_game(id, num_row, num_column):
             }
         print("Loaded from MySQL")
         return all_cells
+    except mysql.connector.Error as error:
+        print("Database load failed.")
+        print("Error:", error)
+    finally:
+        if "cursor" in locals():
+            cursor.close()
+        if "connection" in locals() and connection.is_connected():
+            connection.close()
+
+def delete_game_from_db(game_id):
+    try:
+        connection = mysql.connector.connect(**db_config) # ** "unrolls" the dictionary for us and sends in the key/value pairs to the function
+        # for example "host": "localhost" becomes host="localhost" so this translates to mysql.connector.connect(host="localhost")
+        # "unrolling" is used extensively in networking code as we "save" the connection settings and reuse them often in networking
+        cursor = connection.cursor()
+        cursor.execute(f"DELETE FROM minefield WHERE id = {game_id}")
+        connection.commit()
+        print("Game deleted from db")
     except mysql.connector.Error as error:
         print("Database load failed.")
         print("Error:", error)

@@ -1,6 +1,6 @@
 import random
+import db_connector
 
-# TODO BIG ONE! change all x to row, change all y to column, including in DB, rename field to cell (matching DB)
 def number_to_coord(number: int, n: int):
     out_x = number % n # 0 to x if we go over x then we go back to 0
     out_y = number // n # only goes up if over x, e.x. 0 to x == 0 then x to 2 * x == 1 etc.
@@ -19,7 +19,7 @@ def make_field(row: int, column: int, number_of_bombs: int):
         proposed_cell = field[this_x][this_y].get("num_bomb", 0)
         if proposed_cell != 9:
             field[this_x][this_y]["num_bomb"] = 9
-            number_of_bombs -= 1 # TODO make purely solvable boards?
+            number_of_bombs -= 1
             # add hints to fields surrounding bombs
             for num_x in range(-1, 2):
                 local_x = this_x + num_x
@@ -35,6 +35,15 @@ def make_field(row: int, column: int, number_of_bombs: int):
                     except KeyError:
                         field[local_x][local_y]["num_bomb"] = 1
     return field
+
+def do_reveal(game_board, row, column, num_rows, num_columns, board_id):
+    game_board[row][column]["revealed"] = True
+    db_connector.update_cell(row, column, game_board[row][column].get("revealed", False), game_board[row][column].get("flagged", False), board_id)
+    if game_board[row][column].get("num_bomb", 0) == 0:
+        for local_row in range(max(row - 1, 0), min(row + 2, num_rows)):
+            for local_column in range(max(column - 1, 0), min(column + 2, num_columns)):
+                if not game_board[local_row][local_column].get("revealed", False):
+                    do_reveal(game_board, local_row, local_column, num_rows, num_columns, board_id)
 
 if __name__ == "__main__":
     test_board = make_field(10, 12, 50)
