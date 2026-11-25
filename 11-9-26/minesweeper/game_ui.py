@@ -93,7 +93,7 @@ async def get_load():
                                 running = False
             await asyncio.sleep(0)
         pygame.quit()
-        return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board, chosen_board["board_id"]
+        return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board, chosen_board["minefield_id"]
 
 async def menu():
     pygame.init()
@@ -137,7 +137,7 @@ async def menu():
     return difficulty_chosen, chosen_dict["num_rows"], chosen_dict["num_columns"], chosen_dict["number_of_bombs"], None, None
     
 
-async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, difficulty="Easy"):
+async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, difficulty="Easy", board_id=None):
     pygame.init()
     screen = pygame.display.set_mode((MARGIN * 2 + column_num * CELL_SIZE, MARGIN * 2 + row_num * CELL_SIZE + TOP_MARGIN))
     cells = generate_squares(row_num, column_num)
