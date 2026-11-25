@@ -93,7 +93,7 @@ async def get_load():
                                 running = False
             await asyncio.sleep(0)
         pygame.quit()
-        return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board
+        return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board, chosen_board["board_id"]
 
 async def menu():
     pygame.init()
@@ -133,8 +133,8 @@ async def menu():
         await asyncio.sleep(0)
     pygame.quit()
     if load_game:
-        return None, None, None, None, None
-    return difficulty_chosen, chosen_dict["num_rows"], chosen_dict["num_columns"], chosen_dict["number_of_bombs"], None
+        return None, None, None, None, None, None
+    return difficulty_chosen, chosen_dict["num_rows"], chosen_dict["num_columns"], chosen_dict["number_of_bombs"], None, None
     
 
 async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, difficulty="Easy"):
@@ -225,7 +225,7 @@ async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, diff
     pygame.quit()
 
 if __name__ == "__main__":
-    difficulty, num_row, num_column, number_of_bombs, game_board = asyncio.run(menu())
+    difficulty, num_row, num_column, number_of_bombs, game_board, board_id = asyncio.run(menu())
     if not difficulty:
-        difficulty, num_row, num_column, number_of_bombs, game_board = asyncio.run(get_load())
-    asyncio.run(main(num_row, num_column, number_of_bombs, game_board, difficulty))
+        difficulty, num_row, num_column, number_of_bombs, game_board, board_id = asyncio.run(get_load())
+    asyncio.run(main(num_row, num_column, number_of_bombs, game_board, difficulty, board_id))
