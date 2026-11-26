@@ -59,7 +59,7 @@ def generate_squares(row_num, column_num):
             output[local_x].append(pygame.Rect(MARGIN + local_y * CELL_SIZE, MARGIN + local_x * CELL_SIZE + TOP_MARGIN, CELL_SIZE, CELL_SIZE))
     return output
 
-async def get_load():
+def get_load():
     pygame.init()
     board_dicts = db_connector.get_all_games_from_db()
     num_games = len(board_dicts)
@@ -70,30 +70,28 @@ async def get_load():
     for index, this_game in enumerate(board_dicts):
         load_boxes.append(pygame.Rect(MARGIN, MARGIN + index * MENU_BUTTON_HEIGHT, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT))
         pygame.draw.rect(screen, BOX_COLOR, load_boxes[index], width=1)
-        this_dict = board_dicts[index]
-        rendered_difficulty = font.render(f"{this_dict["minefield_id"]}. {this_dict["difficulty"]} {this_dict["num_column"]}x{this_dict["num_row"]}", True, (200, 200, 200))
+        rendered_difficulty = font.render(f"{this_game["minefield_id"]}. {this_game["difficulty"]} {this_game["num_column"]}x{this_game["num_row"]}", True, (200, 200, 200))
         screen.blit(rendered_difficulty, ((MARGIN, MARGIN + MENU_BUTTON_HEIGHT * index), (MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)))
-        pygame.display.flip()
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1: # left click
-                        for index, proposed_board in enumerate(board_dicts):
-                            if load_boxes[index].collidepoint(event.pos):
-                                chosen_board = proposed_board
-                                game_board = db_connector.get_all_cells_from_game(chosen_board["minefield_id"], chosen_board["num_row"], chosen_board["num_column"])
-                                number_of_bombs = 0
-                                for local_x in range(chosen_board["num_row"]):
-                                    for local_y in range(chosen_board["num_column"]):
-                                        if game_board[local_x][local_y].get("num_board", 0) == 9:
-                                            number_of_bombs += 1
-                                running = False
-            await asyncio.sleep(0)
-        pygame.quit()
-        return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board, chosen_board["minefield_id"]
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1: # left click
+                    for index, proposed_board in enumerate(board_dicts):
+                        if load_boxes[index].collidepoint(event.pos):
+                            chosen_board = proposed_board
+                            game_board = db_connector.get_all_cells_from_game(chosen_board["minefield_id"], chosen_board["num_row"], chosen_board["num_column"])
+                            number_of_bombs = 0
+                            for local_x in range(chosen_board["num_row"]):
+                                for local_y in range(chosen_board["num_column"]):
+                                    if game_board[local_x][local_y].get("num_bomb", 0) == 9:
+                                        number_of_bombs += 1
+                            running = False
+    pygame.quit()
+    return chosen_board["difficulty"], chosen_board["num_row"], chosen_board["num_column"], number_of_bombs, game_board, chosen_board["minefield_id"]
 
 async def menu():
     pygame.init()
@@ -146,9 +144,9 @@ async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, diff
     font = pygame.font.Font(None, 28)
     game_state = True
     running = True
+    total_seconds = 0
     # game_loop starts
     while running:
-        dt = clock.tick(60) / 1000
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -185,22 +183,44 @@ async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, diff
                                         running = False
                                         win_state = True
                                         game_state = False
-                # TODO add right click flag
+                if event.button == 3: # right click
+                    if game_board:
+                        for local_x in range(row_num):
+                            for local_y in range(column_num):
+                                this_cell = cells[local_x][local_y]
+                                if this_cell.collidepoint(event.pos):
+                                    game_board[local_x][local_y]["flagged"] = not game_board[local_x][local_y].get("flagged", False)
+                                    db_connector.update_cell(local_x, local_y, game_board[local_x][local_y].get("revealed", False), game_board[local_x][local_y].get("flagged", False), board_id)
         screen.fill(BG_COLOR)
+        flag_count = 0
         for local_x in range(row_num):
             for local_y in range(column_num):
                 this_reveal = False
+                this_flagged = False
                 if game_board and game_board[local_x][local_y].get("revealed", False):
                     this_reveal = True
                 pygame.draw.rect(screen, CLICKED_BOX if this_reveal else BOX_COLOR, cells[local_x][local_y], width=1)
+                if not this_reveal:
+                    if game_board and game_board[local_x][local_y].get("flagged", False):
+                        this_flagged = True
+                        flag_count += 1
                 if this_reveal:
                     num_bomb = font.render(str(game_board[local_x][local_y].get("num_bomb")), True, NUMBER_COLORS.get(game_board[local_x][local_y].get("num_bomb"), 1))
                     screen.blit(num_bomb, ((MARGIN + local_y * CELL_SIZE, MARGIN + local_x * CELL_SIZE + TOP_MARGIN), (CELL_SIZE, CELL_SIZE)))
-        # TODO TIMER AND BOMB COUNTER GO BELOW SIMILAR TO HOW BOUNCES USED TO WORK FOR BALL_GAME
-        """
-        label = font.render(f"Bounces: {bounces}    (click to change color)", True, BOX_COLOR)
-        screen.blit(label, (MARGIN, 10))
-        """
+                elif this_flagged:
+                    flag = font.render("P", True, (200, 200, 200))
+                    screen.blit(flag, ((MARGIN + local_y * CELL_SIZE, MARGIN + local_x * CELL_SIZE + TOP_MARGIN), (CELL_SIZE, CELL_SIZE)))
+        dt = clock.tick(60) / 1000
+        total_seconds += dt
+        millisecond = str(total_seconds % 1)[2:]
+        second = int(total_seconds % 60)
+        minute = int((total_seconds // 60) % 60)
+        hour = int(total_seconds // (60 * 60))
+        timer = font.render(f"{hour}:{minute}:{second}.{millisecond}", True, (200, 200, 200))
+        screen.blit(timer, (((MARGIN * 2 + column_num * CELL_SIZE) / 2, MARGIN), (CELL_SIZE, CELL_SIZE)))
+        remaining_bombs = number_of_bombs - flag_count
+        bomb_display = font.render(f"{remaining_bombs} bomb{"s" if remaining_bombs not in [1, -1] else ""}", True, (200, 200, 200))
+        screen.blit(bomb_display, ((MARGIN / 2, MARGIN), (CELL_SIZE, CELL_SIZE)))
         pygame.display.flip()
         await asyncio.sleep(0)
     # game_loop ended
@@ -227,5 +247,5 @@ async def main(row_num=5, column_num=5, number_of_bombs=4, game_board=None, diff
 if __name__ == "__main__":
     difficulty, num_row, num_column, number_of_bombs, game_board, board_id = asyncio.run(menu())
     if not difficulty:
-        difficulty, num_row, num_column, number_of_bombs, game_board, board_id = asyncio.run(get_load())
+        difficulty, num_row, num_column, number_of_bombs, game_board, board_id = get_load()
     asyncio.run(main(num_row, num_column, number_of_bombs, game_board, difficulty, board_id))
